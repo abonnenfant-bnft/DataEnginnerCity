@@ -24,3 +24,39 @@ def agregate_dim_city():
     """
 
     con.execute(sql_statement)
+
+def agregate_dim_station():
+    con = duckdb.connect(database="data/duckdb/mobility_analysis.duckdb", read_only=False)
+    sql_statement = """
+    INSERT OR REPLACE INTO DIM_STATION
+    SELECT ID, CODE, NAME, ADDRESS, LONGITUDE, LATITUDE, STATUS, CAPACITY
+    FROM CONSOLIDATE_STATION
+    WHERE CREATED_DATE = (SELECT MAX(CREATED_DATE) FROM CONSOLIDATE_STATION);
+    """
+    con.execute(sql_statement)
+    
+    con.close()
+    print("✅ Dimension STATION alimentée.")
+    
+def agregate_fact_station_statement():
+    con = duckdb.connect(database="data/duckdb/mobility_analysis.duckdb", read_only=False)
+
+    sql_statement = """
+    INSERT OR REPLACE INTO FACT_STATION_STATEMENT
+    SELECT 
+        s.ID AS STATION_ID,
+        c.ID AS CITY_ID,
+        st.BICYCLE_DOCKS_AVAILABLE,
+        st.BICYCLE_AVAILABLE,
+        st.LAST_STATEMENT_DATE,
+        st.CREATED_DATE
+    FROM CONSOLIDATE_STATION_STATEMENT st
+    JOIN CONSOLIDATE_STATION s ON st.STATION_ID = s.ID
+    JOIN CONSOLIDATE_CITY c ON s.CITY_CODE = c.ID
+    WHERE st.CREATED_DATE = (SELECT MAX(CREATED_DATE) FROM CONSOLIDATE_STATION_STATEMENT);
+    """
+    con.execute(sql_statement)
+    con.close()
+    print("✅ Table de faits FACT_STATION_STATEMENT alimentée.")
+
+

@@ -11,6 +11,13 @@ def get_paris_realtime_bicycle_data():
     
     serialize_data(response.text, "paris_realtime_bicycle_data.json")
 
+def get_nantes_realtime_bicycle_data():
+    url = "https://data.nantesmetropole.fr/api/explore/v2.1/catalog/datasets/244400404_stations-velos-libre-service-nantes-metropole-disponibilites/records?limit=100"
+    
+    response = requests.request("GET", url)
+    
+    serialize_data(response.text, "nantes_realtime_bicycle_data.json")
+
 def serialize_data(raw_json: str, file_name: str):
 
     today_date = datetime.now().strftime("%Y-%m-%d")
@@ -20,3 +27,10 @@ def serialize_data(raw_json: str, file_name: str):
     
     with open(f"data/raw_data/{today_date}/{file_name}", "w") as fd:
         fd.write(raw_json)
+
+def get_french_communes_data():
+    print("coucou")
+    url = "https://geo.api.gouv.fr/communes"
+    response = requests.get(url)
+    response.raise_for_status()
+    serialize_data(response.text, "french_communes_data.json")
